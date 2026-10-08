@@ -976,7 +976,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Check active session against deleted accounts and super admin removals
   useEffect(() => {
     if (!currentUser) return;
-    if (currentUser.id === 'admin-master-br' || (currentUser.username || '').toLowerCase() === 'adminbr' || originalSuperAdminUser) return;
+    if (currentUser.id === 'admin-master-br' || (currentUser.username || '').toLowerCase() === 'siadmin' || originalSuperAdminUser) return;
 
     if (
       isIdentifierDeleted(currentUser.id) ||
@@ -1027,8 +1027,8 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setCurrentUser({
         id: 'admin-master-br',
         name: 'Super Admin',
-        username: 'AdminBr',
-        email: 'adminbr@tahfidz.sch.id',
+        username: 'siadmin',
+        email: 'siadmin@tahfidz.sch.id',
         role: 'super_admin'
       });
     } else if (role === 'admin') {
@@ -1043,8 +1043,8 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setCurrentUser({
         id: 'admin-master-br',
         name: 'Super Admin',
-        username: 'AdminBr',
-        email: 'adminbr@tahfidz.sch.id',
+        username: 'siadmin',
+        email: 'siadmin@tahfidz.sch.id',
         role: 'super_admin'
       });
     }
@@ -1167,13 +1167,13 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
           message: 'Akun ini telah dihapus oleh Super Admin dan tidak dapat dipulihkan atau login kembali.'
         };
       }
-      if (cleanId === 'adminbr' || cleanId === 'adminbr@tahfidz.sch.id') {
+      if (cleanId === 'siadmin' || cleanId === 'siadmin@tahfidz.sch.id') {
         try {
-          localStorage.setItem('tahfidz_adminbr_pass', newPassword);
+          localStorage.setItem('tahfidz_siadmin_pass', newPassword);
         } catch (e) {
           console.error(e);
         }
-        addSystemLog('Reset Password', 'SECURITY', 'Password akun Super Admin (AdminBr) telah diperbarui.');
+        addSystemLog('Reset Password', 'SECURITY', 'Password akun Super Admin (siadmin) telah diperbarui.');
         return { success: true, message: 'Password akun Super Admin berhasil diperbarui! Silakan masuk dengan password baru.' };
       }
 
@@ -1554,17 +1554,17 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     // Built-in Super Admin Role with full database access
-    if (cleanId === 'adminbr' || cleanId === 'adminbr@tahfidz.sch.id') {
-      const savedMasterPass = localStorage.getItem('tahfidz_adminbr_pass') || 'adminbr123';
-      if (password === savedMasterPass || password === 'adminbr123') {
+    if (cleanId === 'siadmin' || cleanId === 'siadmin@tahfidz.sch.id') {
+      const savedMasterPass = localStorage.getItem('tahfidz_siadmin_pass') || 'siadmin123';
+      if (password === savedMasterPass || password === 'siadmin123') {
         const savedUserJson = localStorage.getItem(STORAGE_KEYS.USER);
         let customAdminName = 'Super Admin';
         let customAdminPhone: string | undefined = undefined;
-        let customAdminEmail = 'adminbr@tahfidz.sch.id';
+        let customAdminEmail = 'siadmin@tahfidz.sch.id';
         try {
           if (savedUserJson) {
             const parsed = JSON.parse(savedUserJson);
-            if (parsed.id === 'admin-master-br' || parsed.username === 'AdminBr') {
+            if (parsed.id === 'admin-master-br' || (parsed.username || '').toLowerCase() === 'siadmin') {
               customAdminName = parsed.name || customAdminName;
               customAdminPhone = parsed.phone || customAdminPhone;
               customAdminEmail = parsed.email || customAdminEmail;
@@ -1577,13 +1577,13 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const superAdmin: User = {
           id: 'admin-master-br',
           name: customAdminName,
-          username: 'AdminBr',
+          username: 'siadmin',
           email: customAdminEmail,
           role: 'super_admin',
           phone: customAdminPhone
         };
         login(superAdmin);
-        addSystemLog('Login Super Admin', 'AUTH', 'Login berhasil dengan kredensial master AdminBr');
+        addSystemLog('Login Super Admin', 'AUTH', 'Login berhasil dengan kredensial master siadmin');
         return { 
           success: true, 
           message: 'Login berhasil! Akses sistem penuh aktif.', 
@@ -1710,7 +1710,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const usernameTaken = userAccounts.some(
           u => u.id !== currentUser.id && u.username?.trim().toLowerCase() === cleanUsername.toLowerCase()
         );
-        if (usernameTaken || (cleanUsername.toLowerCase() === 'adminbr' && currentUser.id !== 'admin-master-br')) {
+        if (usernameTaken || (cleanUsername.toLowerCase() === 'siadmin' && currentUser.id !== 'admin-master-br')) {
           return { success: false, message: 'Username sudah digunakan oleh akun lain. Silakan pilih username lain.' };
         }
       }
@@ -1725,7 +1725,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      const isSuperAdmin = currentUser.id === 'admin-master-br' || (currentUser.username || '').toLowerCase() === 'adminbr' || currentUser.role === 'super_admin';
+      const isSuperAdmin = currentUser.id === 'admin-master-br' || (currentUser.username || '').toLowerCase() === 'siadmin' || currentUser.role === 'super_admin';
 
       // Password verification and change
       if (profileData.newPassword) {
@@ -1734,11 +1734,11 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         if (isSuperAdmin) {
-          const currentMasterPass = localStorage.getItem('tahfidz_adminbr_pass') || 'adminbr123';
-          if (profileData.currentPassword !== currentMasterPass && profileData.currentPassword !== 'adminbr123') {
+          const currentMasterPass = localStorage.getItem('tahfidz_siadmin_pass') || 'siadmin123';
+          if (profileData.currentPassword !== currentMasterPass && profileData.currentPassword !== 'siadmin123') {
             return { success: false, message: 'Kata sandi lama untuk Super Admin tidak sesuai!' };
           }
-          localStorage.setItem('tahfidz_adminbr_pass', profileData.newPassword);
+          localStorage.setItem('tahfidz_siadmin_pass', profileData.newPassword);
         } else {
           const matched = userAccounts.find(u => u.id === currentUser.id || u.username === currentUser.username || u.email === currentUser.email);
           if (matched && matched.password) {
@@ -1816,7 +1816,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         studentName: currentUser.studentName,
         ...(profileData.newPassword 
           ? { password: profileData.newPassword } 
-          : (targetAccount?.password ? { password: targetAccount.password } : (isSuperAdmin ? { password: localStorage.getItem('tahfidz_adminbr_pass') || 'adminbr123' } : {})))
+          : (targetAccount?.password ? { password: targetAccount.password } : (isSuperAdmin ? { password: localStorage.getItem('tahfidz_siadmin_pass') || 'siadmin123' } : {})))
       };
 
       setUserAccounts(prev => {

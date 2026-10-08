@@ -1354,7 +1354,7 @@ export const KelolaDataView: React.FC = () => {
                 <div className="space-y-1 text-slate-300 text-[11px]">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Username:</span>
-                    <span className="font-mono font-bold text-white">AdminBr</span>
+                    <span className="font-mono font-bold text-white">siadmin</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Tingkat Akses:</span>
@@ -2335,8 +2335,8 @@ export const KelolaDataView: React.FC = () => {
                         <div className="text-[11px] text-slate-500 dark:text-slate-400">Akun Super Administrator Utama</div>
                       </td>
                       <td className="py-3 px-3">
-                        <div className="font-mono font-semibold text-slate-800 dark:text-slate-200">AdminBr</div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400">adminbr@tahfidz.sch.id</div>
+                        <div className="font-mono font-semibold text-slate-800 dark:text-slate-200">siadmin</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400">siadmin@tahfidz.sch.id</div>
                       </td>
                       <td className="py-3 px-3">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 uppercase">
@@ -2352,12 +2352,12 @@ export const KelolaDataView: React.FC = () => {
                           onClick={() => {
                             setResetModalAccount({
                               id: 'admin-master-br',
-                              name: 'Super Admin Database (AdminBr)',
-                              username: 'AdminBr',
-                              email: 'adminbr@tahfidz.sch.id',
+                              name: 'Super Admin Database (siadmin)',
+                              username: 'siadmin',
+                              email: 'siadmin@tahfidz.sch.id',
                               role: 'super_admin'
                             });
-                            setResetModalNewPassword('adminbr123');
+                            setResetModalNewPassword('siadmin123');
                             setResetModalFeedback(null);
                           }}
                           className="px-2.5 py-1 bg-amber-100 dark:bg-amber-950 hover:bg-amber-200 dark:hover:bg-amber-900 text-amber-900 dark:text-amber-200 rounded-lg text-xs font-semibold transition-colors"
@@ -3596,7 +3596,7 @@ export const KelolaDataView: React.FC = () => {
                 </div>
               )}
 
-              {resetModalAccount.username === 'AdminBr' || resetModalAccount.id === 'admin-master-br' ? (
+              {(resetModalAccount.username || '').toLowerCase() === 'siadmin' || resetModalAccount.id === 'admin-master-br' ? (
                 <div className="p-3 bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-900 dark:text-amber-200 text-xs space-y-1">
                   <div className="font-bold">Akun Root Master Administrator</div>
                   <p className="text-[11px] text-amber-800 dark:text-amber-300">
@@ -3629,7 +3629,7 @@ export const KelolaDataView: React.FC = () => {
               )}
 
               <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                {!(resetModalAccount.username === 'AdminBr' || resetModalAccount.id === 'admin-master-br') ? (
+                {!((resetModalAccount.username || '').toLowerCase() === 'siadmin' || resetModalAccount.id === 'admin-master-br') ? (
                   <button
                     type="button"
                     onClick={() => {
@@ -3658,7 +3658,7 @@ export const KelolaDataView: React.FC = () => {
                   >
                     Tutup
                   </button>
-                  {!(resetModalAccount.username === 'AdminBr' || resetModalAccount.id === 'admin-master-br') && (
+                  {!((resetModalAccount.username || '').toLowerCase() === 'siadmin' || resetModalAccount.id === 'admin-master-br') && (
                     <button
                       type="submit"
                       disabled={isResettingPassword}
