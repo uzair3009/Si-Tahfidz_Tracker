@@ -11,6 +11,7 @@ export const Navbar: React.FC = () => {
     setActiveTab, 
     logout, 
     cloudSyncStatus, 
+    syncAllDataToCloud,
     darkMode, 
     toggleDarkMode,
     switchParentActiveChild,
@@ -20,7 +21,15 @@ export const Navbar: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileModalTab, setProfileModalTab] = useState<'view' | 'edit'>('view');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNavSyncing, setIsNavSyncing] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleNavSync = async () => {
+    if (isNavSyncing) return;
+    setIsNavSyncing(true);
+    await syncAllDataToCloud();
+    setIsNavSyncing(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -74,8 +83,25 @@ export const Navbar: React.FC = () => {
             </button>
 
             {/* Cloud Real-Time Sync Indicator */}
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 shrink-0">
-              {cloudSyncStatus === 'synced' ? (
+            <button
+              type="button"
+              onClick={handleNavSync}
+              disabled={isNavSyncing || cloudSyncStatus === 'syncing'}
+              title={
+                cloudSyncStatus === 'synced'
+                  ? 'Terhubung ke Cloud Firestore. Klik untuk sinkronkan ulang.'
+                  : cloudSyncStatus === 'syncing' || isNavSyncing
+                  ? 'Sedang menyinkronkan data ke Cloud Firestore...'
+                  : 'Mode penyimpanan lokal. Klik untuk sinkronkan ke Cloud Firestore.'
+              }
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-750 border-slate-200 dark:border-slate-700 transition-colors shrink-0 cursor-pointer"
+            >
+              {isNavSyncing || cloudSyncStatus === 'syncing' ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 animate-spin" />
+                  <span className="text-blue-700 dark:text-blue-400 font-semibold">Sinkronisasi...</span>
+                </>
+              ) : cloudSyncStatus === 'synced' ? (
                 <>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
@@ -83,18 +109,13 @@ export const Navbar: React.FC = () => {
                     Cloud Aktif
                   </span>
                 </>
-              ) : cloudSyncStatus === 'syncing' ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 animate-spin" />
-                  <span className="text-blue-700 dark:text-blue-400 font-semibold">Sinkronisasi...</span>
-                </>
               ) : (
                 <>
                   <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  <span className="text-slate-600 dark:text-slate-400">Lokal</span>
+                  <span className="text-slate-600 dark:text-slate-400">Lokal (Klik Sync)</span>
                 </>
               )}
-            </div>
+            </button>
           </div>
 
           {/* Zone 2: Navigation Links */}

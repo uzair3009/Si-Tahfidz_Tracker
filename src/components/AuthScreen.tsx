@@ -442,8 +442,8 @@ export const AuthScreen: React.FC = () => {
           await processGoogleUserResult(
             {
               uid: fbUser.uid,
-              name: fbUser.displayName || fbUser.email.split('@')[0],
-              email: fbUser.email,
+              name: fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : 'Pengguna Google'),
+              email: fbUser.email || '',
               avatar: fbUser.photoURL || undefined,
               phone: fbUser.phoneNumber || undefined
             },

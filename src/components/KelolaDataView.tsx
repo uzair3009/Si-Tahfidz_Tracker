@@ -42,7 +42,8 @@ import {
   Smartphone,
   UserCheck,
   ArrowRight,
-  Layers
+  Layers,
+  Cloud
 } from 'lucide-react';
 import { Santri, Kelas, Kelompok, TargetHafalan, SesiTahfidz, UserAccount, User } from '../types';
 import { parseHafalan } from '../utils/hafalanFormat';
@@ -74,6 +75,8 @@ export const KelolaDataView: React.FC = () => {
     attendanceHistory,
     tasmiList,
     isCloudSynced,
+    cloudSyncStatus,
+    syncAllDataToCloud,
     addSantri,
     updateSantri,
     deleteSantri,
@@ -99,6 +102,18 @@ export const KelolaDataView: React.FC = () => {
   type TabType = 'santri' | 'kelas' | 'kelompok' | 'target' | 'sesi' | 'backup' | 'superadmin';
   const [activeTab, setActiveTab] = usePersistedState<TabType>('tahfidz_kelola_tab_v1', 'santri');
   const [isClearing, setIsClearing] = useState(false);
+  const [isSyncingToCloud, setIsSyncingToCloud] = useState(false);
+
+  const handleManualCloudSync = async () => {
+    setIsSyncingToCloud(true);
+    const res = await syncAllDataToCloud();
+    setIsSyncingToCloud(false);
+    if (res.success) {
+      showFeedback(res.message, 'success');
+    } else {
+      showFeedback(res.message, 'error');
+    }
+  };
 
   // Super Admin Command Center Sub-Section
   const [superAdminSection, setSuperAdminSection] = usePersistedState<
@@ -1203,8 +1218,39 @@ export const KelolaDataView: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             
+            {/* Cloud Sync Card */}
+            <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl border-2 border-emerald-300 dark:border-emerald-800 space-y-3 flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
+                  <Cloud className="w-5 h-5" />
+                </div>
+                <h4 className="font-bold text-emerald-950 dark:text-emerald-200 text-sm">Sinkron Cloud DB</h4>
+                <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                  Unggah & sinkronkan seluruh data ke basis data Cloud Firestore secara instan.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleManualCloudSync}
+                disabled={isSyncingToCloud}
+                className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {isSyncingToCloud ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Menyinkronkan...</span>
+                  </>
+                ) : (
+                  <>
+                    <Cloud className="w-3.5 h-3.5" />
+                    <span>Sinkronkan Sekarang</span>
+                  </>
+                )}
+              </button>
+            </div>
+
             {/* Export Card */}
             <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 flex flex-col justify-between">
               <div className="space-y-2">
@@ -1431,7 +1477,42 @@ export const KelolaDataView: React.FC = () => {
               </div>
 
               {/* Action Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-2 border-emerald-500/40 dark:border-emerald-500/50 shadow-md space-y-2.5 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-sm">
+                        <Cloud className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        <span>Sinkronisasi Cloud Database</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                        Live DB
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Pastikan seluruh data santri, setoran hafalan, absensi, ujian tasmi, akun pengguna, dan konfigurasi tersimpan utuh di Cloud Firestore.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleManualCloudSync}
+                    disabled={isSyncingToCloud}
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 active:scale-[0.99] text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {isSyncingToCloud ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Menyinkronkan ke Database...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Cloud className="w-3.5 h-3.5" />
+                        <span>Sinkronkan ke Database Sekarang</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-2.5">
                   <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-sm">
                     <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
