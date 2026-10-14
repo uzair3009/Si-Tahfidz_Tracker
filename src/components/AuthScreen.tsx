@@ -38,7 +38,7 @@ import {
   Copy,
   ExternalLink,
   RefreshCw,
-  Info
+  Heart
 } from 'lucide-react';
 import { DeveloperInfoModal } from './DeveloperInfoModal';
 import { Role, User } from '../types';
@@ -1905,7 +1905,7 @@ export const AuthScreen: React.FC = () => {
             onClick={() => setIsDevInfoOpen(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold border border-white/20 transition-all cursor-pointer backdrop-blur-xs shadow-xs"
           >
-            <Info className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+            <Heart className="w-3.5 h-3.5 text-rose-300 fill-rose-300/30" />
             <span>Info & Pesan Pengembang (Abu Uzair)</span>
           </button>
         </div>
