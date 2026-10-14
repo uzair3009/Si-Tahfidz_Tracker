@@ -11,6 +11,7 @@ import {
 import { Santri, HafalanEntry, HafalanQuality, HafalanType } from '../types';
 import { ALL_SURAHS, getSurahsForJuz } from '../data/quranData';
 import { getTodayWIB } from '../utils/dateWIB';
+import { parseNumberInput, sanitizeNumberOnBlur } from '../utils/numberInputHelper';
 
 interface EditSingleHafalanModalProps {
   isOpen: boolean;
@@ -55,8 +56,8 @@ export const EditSingleHafalanModal: React.FC<EditSingleHafalanModalProps> = ({
   );
   const [surahNumber, setSurahNumber] = useState<number>(initialSurahA);
   const [surahSampaiNumber, setSurahSampaiNumber] = useState<number>(initialSurahB);
-  const [ayatMulai, setAyatMulai] = useState<number>(record.ayatMulai || 1);
-  const [ayatSelesai, setAyatSelesai] = useState<number>(record.ayatSelesai || 7);
+  const [ayatMulai, setAyatMulai] = useState<number | ''>(record.ayatMulai || 1);
+  const [ayatSelesai, setAyatSelesai] = useState<number | ''>(record.ayatSelesai || 7);
   const [kualitas, setKualitas] = useState<HafalanQuality>(record.kualitas || 'A');
   const [tanggal, setTanggal] = useState<string>(record.tanggal || getTodayWIB());
   const [catatan, setCatatan] = useState<string>(record.catatan || '');
@@ -83,13 +84,16 @@ export const EditSingleHafalanModal: React.FC<EditSingleHafalanModalProps> = ({
       finalSurahName = sMetaA?.name || `Surah ${surahNumber}`;
     }
 
+    const safeAyatMulai = sanitizeNumberOnBlur(ayatMulai, 1, { min: 1 });
+    const safeAyatSelesai = sanitizeNumberOnBlur(ayatSelesai, safeAyatMulai, { min: safeAyatMulai });
+
     onSave({
       juz,
       type,
       surahNumber,
       surahName: finalSurahName,
-      ayatMulai: Number(ayatMulai),
-      ayatSelesai: Number(ayatSelesai),
+      ayatMulai: safeAyatMulai,
+      ayatSelesai: safeAyatSelesai,
       kualitas,
       tanggal,
       catatan: catatan.trim()
@@ -278,7 +282,8 @@ export const EditSingleHafalanModal: React.FC<EditSingleHafalanModalProps> = ({
                     type="number"
                     min={1}
                     value={ayatMulai}
-                    onChange={e => setAyatMulai(Number(e.target.value))}
+                    onChange={e => setAyatMulai(parseNumberInput(e.target.value, { min: 1 }))}
+                    onBlur={() => setAyatMulai(prev => sanitizeNumberOnBlur(prev, 1, { min: 1 }))}
                     className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-100"
                     required
                   />
@@ -289,7 +294,8 @@ export const EditSingleHafalanModal: React.FC<EditSingleHafalanModalProps> = ({
                     type="number"
                     min={1}
                     value={ayatSelesai}
-                    onChange={e => setAyatSelesai(Number(e.target.value))}
+                    onChange={e => setAyatSelesai(parseNumberInput(e.target.value, { min: 1 }))}
+                    onBlur={() => setAyatSelesai(prev => sanitizeNumberOnBlur(prev, 7, { min: 1 }))}
                     className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-100"
                     required
                   />
@@ -356,7 +362,8 @@ export const EditSingleHafalanModal: React.FC<EditSingleHafalanModalProps> = ({
                     type="number"
                     min={1}
                     value={ayatMulai}
-                    onChange={e => setAyatMulai(Number(e.target.value))}
+                    onChange={e => setAyatMulai(parseNumberInput(e.target.value, { min: 1 }))}
+                    onBlur={() => setAyatMulai(prev => sanitizeNumberOnBlur(prev, 1, { min: 1 }))}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-800 dark:text-slate-100"
                     required
                   />
@@ -367,7 +374,8 @@ export const EditSingleHafalanModal: React.FC<EditSingleHafalanModalProps> = ({
                     type="number"
                     min={1}
                     value={ayatSelesai}
-                    onChange={e => setAyatSelesai(Number(e.target.value))}
+                    onChange={e => setAyatSelesai(parseNumberInput(e.target.value, { min: 1 }))}
+                    onBlur={() => setAyatSelesai(prev => sanitizeNumberOnBlur(prev, 7, { min: 1 }))}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-800 dark:text-slate-100"
                     required
                   />

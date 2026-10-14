@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTahfidz } from '../context/TahfidzContext';
-import { BookOpen, LogOut, Cloud, RefreshCw, Moon, Sun, User, Edit3, ChevronDown, Key, Users, Check } from 'lucide-react';
+import { BookOpen, LogOut, Cloud, RefreshCw, Moon, Sun, User, Edit3, ChevronDown, Key, Users, Check, Info } from 'lucide-react';
 import { ProfileModal } from './ProfileModal';
 import { PWAInstallButton } from './PWAInstallButton';
+import { DeveloperInfoModal } from './DeveloperInfoModal';
 
 export const Navbar: React.FC = () => {
   const { 
@@ -22,6 +23,7 @@ export const Navbar: React.FC = () => {
   const [profileModalTab, setProfileModalTab] = useState<'view' | 'edit'>('view');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNavSyncing, setIsNavSyncing] = useState(false);
+  const [isDevInfoOpen, setIsDevInfoOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleNavSync = async () => {
@@ -294,6 +296,20 @@ export const Navbar: React.FC = () => {
                         <span className="text-[10px] text-slate-400 block font-normal">Ubah nama, kontak & sandi</span>
                       </div>
                     </button>
+
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        setIsDevInfoOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-left"
+                    >
+                      <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <div>
+                        <div>Info Pengembang</div>
+                        <span className="text-[10px] text-slate-400 block font-normal">Pesan & kontak Abu Uzair</span>
+                      </div>
+                    </button>
                   </div>
 
                   {/* Logout item inside dropdown */}
@@ -332,6 +348,12 @@ export const Navbar: React.FC = () => {
       isOpen={isProfileModalOpen}
       onClose={() => setIsProfileModalOpen(false)}
       initialTab={profileModalTab}
+    />
+
+    {/* Developer Info Modal */}
+    <DeveloperInfoModal
+      isOpen={isDevInfoOpen}
+      onClose={() => setIsDevInfoOpen(false)}
     />
   </>
   );

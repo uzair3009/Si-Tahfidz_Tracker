@@ -580,7 +580,7 @@ export const EditKeteranganHafalanForm: React.FC<EditKeteranganHafalanFormProps>
                             min="1"
                             placeholder="Ayat mulai (mis. 1)"
                             value={inProgressAyatMulai}
-                            onChange={e => setInProgressAyatMulai(e.target.value)}
+                            onChange={e => setInProgressAyatMulai(e.target.value.replace(/^0+(?=\d)/, ''))}
                             className="w-1/2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-100"
                           />
                           <span className="text-xs text-slate-400">s/d</span>
@@ -589,7 +589,7 @@ export const EditKeteranganHafalanForm: React.FC<EditKeteranganHafalanFormProps>
                             min="1"
                             placeholder="Ayat selesai (mis. 20)"
                             value={inProgressAyatSelesai}
-                            onChange={e => setInProgressAyatSelesai(e.target.value)}
+                            onChange={e => setInProgressAyatSelesai(e.target.value.replace(/^0+(?=\d)/, ''))}
                             className="w-1/2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-100"
                           />
                         </div>

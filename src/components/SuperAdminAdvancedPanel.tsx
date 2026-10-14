@@ -21,6 +21,7 @@ import {
   Layers,
   Award,
 } from 'lucide-react';
+import { parseNumberInput, sanitizeNumberOnBlur } from '../utils/numberInputHelper';
 
 interface SuperAdminAdvancedPanelProps {
   mode: 'leaderboard' | 'bulk_ops';
@@ -70,14 +71,14 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
   const [allowUserSwitchPeriod, setAllowUserSwitchPeriod] = useState<boolean>(
     cfg.allowUserSwitchPeriod !== false
   );
-  const [weeklyTargetLembar, setWeeklyTargetLembar] = useState<number>(
+  const [weeklyTargetLembar, setWeeklyTargetLembar] = useState<number | ''>(
     Number(cfg.weeklyTargetLembar) || 2.5
   );
-  const [monthlyTargetLembar, setMonthlyTargetLembar] = useState<number>(
+  const [monthlyTargetLembar, setMonthlyTargetLembar] = useState<number | ''>(
     Number(cfg.monthlyTargetLembar) || 10
   );
   const [topCount, setTopCount] = useState<number>(Number(cfg.topCount) || 5);
-  const [minAttendanceTargetPct, setMinAttendanceTargetPct] = useState<number>(
+  const [minAttendanceTargetPct, setMinAttendanceTargetPct] = useState<number | ''>(
     Number(cfg.minAttendanceTargetPct) || 100
   );
   const [achievementBadgeLabel, setAchievementBadgeLabel] = useState<string>(
@@ -149,21 +150,24 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
   );
 
   const activePreviewList = previewTab === 'monthly' ? monthlyTopList : weeklyTopList;
-  const activePreviewTarget = previewTab === 'monthly' ? monthlyTargetLembar : weeklyTargetLembar;
+  const activePreviewTarget = previewTab === 'monthly' ? (monthlyTargetLembar === '' ? 10 : monthlyTargetLembar) : (weeklyTargetLembar === '' ? 2.5 : weeklyTargetLembar);
 
   const handleSaveLeaderboardSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingLeaderboardCfg(true);
     try {
+      const safeWeekly = sanitizeNumberOnBlur(weeklyTargetLembar, 2.5, { min: 0.5, max: 30 });
+      const safeMonthly = sanitizeNumberOnBlur(monthlyTargetLembar, 10, { min: 1, max: 100 });
+      const safeMinAtt = sanitizeNumberOnBlur(minAttendanceTargetPct, 100, { min: 50, max: 100 });
       await updateSystemSettings({
-        targetWeeklySetoran: Math.round(weeklyTargetLembar * 2),
+        targetWeeklySetoran: Math.round(safeWeekly * 2),
         fastestHafalanConfig: {
           defaultPeriod,
           allowUserSwitchPeriod,
-          weeklyTargetLembar: Math.max(0.5, Number(weeklyTargetLembar) || 2.5),
-          monthlyTargetLembar: Math.max(1, Number(monthlyTargetLembar) || 10),
+          weeklyTargetLembar: safeWeekly,
+          monthlyTargetLembar: safeMonthly,
           topCount: Math.max(3, Math.min(10, Number(topCount) || 5)),
-          minAttendanceTargetPct: Math.max(50, Math.min(100, Number(minAttendanceTargetPct) || 100)),
+          minAttendanceTargetPct: safeMinAtt,
           achievementBadgeLabel: achievementBadgeLabel.trim() || 'Mumtaz Progresif',
         },
       });
@@ -234,7 +238,7 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
   // ============================================================================
   const [bulkTargetScope, setBulkTargetScope] = useState<'all' | 'kelas' | 'kelompok'>('kelas');
   const [bulkTargetFilterId, setBulkTargetFilterId] = useState<string>(classes[0]?.id || '');
-  const [bulkTargetJuzValue, setBulkTargetJuzValue] = useState<number>(15);
+  const [bulkTargetJuzValue, setBulkTargetJuzValue] = useState<number | ''>(15);
   const [isRunningBulkTarget, setIsRunningBulkTarget] = useState(false);
 
   const [transferSourceClassFilter, setTransferSourceClassFilter] = useState<string>('all');
@@ -410,7 +414,7 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
                       2. Target Tercepat Per Pekan (Lembar)
                     </label>
                     <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300">
-                      = {Math.round(weeklyTargetLembar * 2)} Hal ({Number((weeklyTargetLembar / 10).toFixed(2))} Juz)
+                      = {Math.round((weeklyTargetLembar === '' ? 0 : weeklyTargetLembar) * 2)} Hal ({Number(((weeklyTargetLembar === '' ? 0 : weeklyTargetLembar) / 10).toFixed(2))} Juz)
                     </span>
                   </div>
                   <input
@@ -419,7 +423,8 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
                     min={0.5}
                     max={30}
                     value={weeklyTargetLembar}
-                    onChange={e => setWeeklyTargetLembar(Number(e.target.value))}
+                    onChange={e => setWeeklyTargetLembar(parseNumberInput(e.target.value, { min: 0.5, max: 30, allowFloat: true }))}
+                    onBlur={() => setWeeklyTargetLembar(prev => sanitizeNumberOnBlur(prev, 2.5, { min: 0.5, max: 30 }))}
                     className="w-full px-3.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none"
                   />
                   <div className="flex flex-wrap gap-1.5 pt-1">
@@ -447,7 +452,7 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
                       3. Target Tercepat Per Bulan (Lembar)
                     </label>
                     <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                      = {Math.round(monthlyTargetLembar * 2)} Hal ({Number((monthlyTargetLembar / 10).toFixed(2))} Juz)
+                      = {Math.round((monthlyTargetLembar === '' ? 0 : monthlyTargetLembar) * 2)} Hal ({Number(((monthlyTargetLembar === '' ? 0 : monthlyTargetLembar) / 10).toFixed(2))} Juz)
                     </span>
                   </div>
                   <input
@@ -456,7 +461,8 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
                     min={1}
                     max={100}
                     value={monthlyTargetLembar}
-                    onChange={e => setMonthlyTargetLembar(Number(e.target.value))}
+                    onChange={e => setMonthlyTargetLembar(parseNumberInput(e.target.value, { min: 1, max: 100, allowFloat: true }))}
+                    onBlur={() => setMonthlyTargetLembar(prev => sanitizeNumberOnBlur(prev, 10, { min: 1, max: 100 }))}
                     className="w-full px-3.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none"
                   />
                   <div className="flex flex-wrap gap-1.5 pt-1">
@@ -504,7 +510,8 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
                     min={50}
                     max={100}
                     value={minAttendanceTargetPct}
-                    onChange={e => setMinAttendanceTargetPct(Number(e.target.value))}
+                    onChange={e => setMinAttendanceTargetPct(parseNumberInput(e.target.value, { min: 50, max: 100 }))}
+                    onBlur={() => setMinAttendanceTargetPct(prev => sanitizeNumberOnBlur(prev, 100, { min: 50, max: 100 }))}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
@@ -775,7 +782,8 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
                   min={1}
                   max={30}
                   value={bulkTargetJuzValue}
-                  onChange={e => setBulkTargetJuzValue(Number(e.target.value))}
+                  onChange={e => setBulkTargetJuzValue(parseNumberInput(e.target.value, { min: 1, max: 30 }))}
+                  onBlur={() => setBulkTargetJuzValue(prev => sanitizeNumberOnBlur(prev, 15, { min: 1, max: 30 }))}
                   className="w-28 px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none"
                 />
                 <div className="flex flex-wrap gap-1.5">
@@ -803,10 +811,11 @@ export const SuperAdminAdvancedPanel: React.FC<SuperAdminAdvancedPanelProps> = (
               onClick={async () => {
                 setIsRunningBulkTarget(true);
                 try {
+                  const safeTarget = sanitizeNumberOnBlur(bulkTargetJuzValue, 15, { min: 1, max: 30 });
                   const res = await bulkUpdateSantriTarget(
                     bulkTargetScope,
                     bulkTargetFilterId,
-                    bulkTargetJuzValue
+                    safeTarget
                   );
                   onShowFeedback(res.message);
                 } finally {

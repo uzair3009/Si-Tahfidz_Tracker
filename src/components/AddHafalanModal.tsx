@@ -5,6 +5,7 @@ import { X, CheckCircle, BookOpen, AlertCircle, Bookmark, Layers, CheckCircle2, 
 import { HafalanQuality, HafalanType } from '../types';
 import { parseHafalan } from '../utils/hafalanFormat';
 import { getTodayWIB } from '../utils/dateWIB';
+import { parseNumberInput, sanitizeNumberOnBlur } from '../utils/numberInputHelper';
 
 interface AddHafalanModalProps {
   isOpen: boolean;
@@ -22,8 +23,8 @@ export const AddHafalanModal: React.FC<AddHafalanModalProps> = ({
   const [studentId, setStudentId] = useState(preselectedStudentId || santriList[0]?.id || '');
   const [juz, setJuz] = useState<number>(1);
   const [surahNumber, setSurahNumber] = useState<number>(1);
-  const [ayatMulai, setAyatMulai] = useState<number>(1);
-  const [ayatSelesai, setAyatSelesai] = useState<number>(7);
+  const [ayatMulai, setAyatMulai] = useState<number | ''>(1);
+  const [ayatSelesai, setAyatSelesai] = useState<number | ''>(7);
   const [targetHalaman, setTargetHalaman] = useState<number>(1);
   const [kualitas, setKualitas] = useState<HafalanQuality>('A');
   const [type, setType] = useState<HafalanType>('baru');
@@ -65,17 +66,20 @@ export const AddHafalanModal: React.FC<AddHafalanModalProps> = ({
     }
   }, [surahNumber]);
 
+  const safeAyatMulai = typeof ayatMulai === 'number' && ayatMulai > 0 ? ayatMulai : 1;
+  const safeAyatSelesai = typeof ayatSelesai === 'number' && ayatSelesai > 0 ? ayatSelesai : (ALL_SURAHS.find(s => s.number === surahNumber)?.totalAyahs || 7);
+
   // Synchronize Halaman & Lembar Standar Mushaf Rasm Utsmani
   const currentSurah = ALL_SURAHS.find(s => s.number === surahNumber);
   const utsmaniData = calculateUtsmaniHalamanDanLembar({
     surahNumber,
-    ayatMulai,
-    ayatSelesai
+    ayatMulai: safeAyatMulai,
+    ayatSelesai: safeAyatSelesai
   });
 
   // Calculate page fraction to know if santri completed 1 full page or partial
   const totalPagesInSurah = currentSurah ? Math.max(1, currentSurah.endPage - currentSurah.startPage + 1) : 1;
-  const ayatCount = Math.max(1, ayatSelesai - ayatMulai + 1);
+  const ayatCount = Math.max(1, safeAyatSelesai - safeAyatMulai + 1);
   const pageFraction = currentSurah ? Number(((ayatCount * totalPagesInSurah) / currentSurah.totalAyahs).toFixed(2)) : 1;
   const isFullPageOrMore = pageFraction >= 0.95 || (utsmaniData.halamanSelesai - utsmaniData.halamanMulai >= 1);
 
@@ -115,8 +119,8 @@ export const AddHafalanModal: React.FC<AddHafalanModalProps> = ({
       juz: utsmaniData.juzEstimate || juz,
       surahNumber,
       surahName: currentSurah ? currentSurah.name : `Surah ${surahNumber}`,
-      ayatMulai,
-      ayatSelesai,
+      ayatMulai: safeAyatMulai,
+      ayatSelesai: safeAyatSelesai,
       halaman: utsmaniData.totalHalaman,
       lembar: utsmaniData.totalLembar,
       kualitas,
@@ -290,7 +294,8 @@ export const AddHafalanModal: React.FC<AddHafalanModalProps> = ({
                   min={1}
                   max={currentSurah?.totalAyahs || 286}
                   value={ayatMulai}
-                  onChange={e => setAyatMulai(Number(e.target.value))}
+                  onChange={e => setAyatMulai(parseNumberInput(e.target.value, { min: 1, max: currentSurah?.totalAyahs || 286 }))}
+                  onBlur={() => setAyatMulai(prev => sanitizeNumberOnBlur(prev, 1, { min: 1, max: currentSurah?.totalAyahs || 286 }))}
                   placeholder="Mulai ayat"
                   className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
                   required
@@ -299,10 +304,11 @@ export const AddHafalanModal: React.FC<AddHafalanModalProps> = ({
               <div>
                 <input
                   type="number"
-                  min={ayatMulai}
+                  min={typeof ayatMulai === 'number' ? ayatMulai : 1}
                   max={currentSurah?.totalAyahs || 286}
                   value={ayatSelesai}
-                  onChange={e => setAyatSelesai(Number(e.target.value))}
+                  onChange={e => setAyatSelesai(parseNumberInput(e.target.value, { min: 1, max: currentSurah?.totalAyahs || 286 }))}
+                  onBlur={() => setAyatSelesai(prev => sanitizeNumberOnBlur(prev, currentSurah?.totalAyahs || 7, { min: safeAyatMulai, max: currentSurah?.totalAyahs || 286 }))}
                   placeholder="Sampai ayat"
                   className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
                   required

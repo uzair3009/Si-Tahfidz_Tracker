@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, initializeFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import {
   getAuth,
   initializeAuth,
@@ -35,7 +35,6 @@ try {
     app,
     {
       experimentalForceLongPolling: true,
-      experimentalAutoDetectLongPolling: true,
     },
     firebaseConfig.firestoreDatabaseId
   );
@@ -180,5 +179,19 @@ export async function testConnection(): Promise<boolean> {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     return false;
   }
-  return true;
+  try {
+    const testPromise = getDocFromServer(doc(db, 'test', 'connection'));
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 3500)
+    );
+    await Promise.race([testPromise, timeoutPromise]);
+    return true;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.warn('Firestore offline: falling back to local cached state.');
+      return false;
+    }
+    // Document not existing or other benign responses mean server was reached
+    return true;
+  }
 }

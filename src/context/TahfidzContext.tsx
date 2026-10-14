@@ -242,8 +242,8 @@ export interface TahfidzContextType {
   scheduleTasmi: (studentId: string, tanggal: string, waktu: string, penguji?: string, targetText?: string, videoUrl?: string) => void;
   updateTasmiSchedule: (id: string, tanggal: string, waktu: string, penguji?: string, targetText?: string, videoUrl?: string) => void;
   updateTasmiResult: (id: string, nilai: TasmiRecord['nilai'], catatan: string, videoUrl?: string) => void;
-  cancelTasmi: (id: string) => void;
-  deleteTasmi: (id: string) => void;
+  cancelTasmi: (id: string) => Promise<void>;
+  deleteTasmi: (id: string) => Promise<void>;
 
   // Master Data Actions
   addSantri: (santriData: {
@@ -536,11 +536,32 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return isDataCleared() ? [] : INITIAL_SESSIONS;
   });
 
+  const [deletedTasmiIds, setDeletedTasmiIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('tahfidz_deleted_tasmi_ids');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return [];
+  });
+
   const [tasmiList, setTasmiList] = useState<TasmiRecord[]>(() => {
     try {
       if (isDataCleared()) return [];
       const saved = localStorage.getItem(STORAGE_KEYS.TASMI);
-      if (saved) return JSON.parse(saved);
+      const delSaved = localStorage.getItem('tahfidz_deleted_tasmi_ids');
+      const delIds: string[] = delSaved ? JSON.parse(delSaved) : [];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(t => !delIds.includes(t.id));
+        }
+      }
+      return isDataCleared() ? [] : INITIAL_TASMI.filter(t => !delIds.includes(t.id));
     } catch (e) {
       console.error(e);
     }
@@ -571,7 +592,15 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [deletedUserIds, setDeletedUserIds] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('tahfidz_deleted_user_ids');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(id => {
+            const clean = (id || '').trim().toLowerCase();
+            return clean !== 'siadmin' && clean !== 'admin-master-br' && clean !== 'siadmin@tahfidz.sch.id' && clean !== 'adminbr';
+          });
+        }
+      }
     } catch (e) {
       console.error(e);
     }
@@ -581,7 +610,19 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [deletedUsersList, setDeletedUsersList] = useState<DeletedUserRecord[]>(() => {
     try {
       const saved = localStorage.getItem('tahfidz_deleted_users_list_v1');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(d => {
+            const cleanId = (d.userId || '').trim().toLowerCase();
+            const cleanEmail = (d.email || '').trim().toLowerCase();
+            const cleanUser = (d.username || '').trim().toLowerCase();
+            return cleanId !== 'siadmin' && cleanId !== 'admin-master-br' &&
+                   cleanEmail !== 'siadmin@tahfidz.sch.id' &&
+                   cleanUser !== 'siadmin' && cleanUser !== 'adminbr';
+          });
+        }
+      }
     } catch (e) {
       console.error(e);
     }
@@ -592,6 +633,10 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!val) return false;
     const clean = val.trim().toLowerCase();
     if (!clean) return false;
+    // Super Admin account can never be deleted
+    if (clean === 'siadmin' || clean === 'admin-master-br' || clean === 'siadmin@tahfidz.sch.id' || clean === 'adminbr') {
+      return false;
+    }
     if (deletedUserIds.some(d => d && d.trim().toLowerCase() === clean)) return true;
     if (
       deletedUsersList.some(
@@ -760,16 +805,37 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const unsubTasmi = onSnapshot(
       collection(db, 'tasmi'),
       snapshot => {
+        let activeDeletedIds: string[] = [];
+        try {
+          const rawDeleted = localStorage.getItem('tahfidz_deleted_tasmi_ids');
+          if (rawDeleted) activeDeletedIds = JSON.parse(rawDeleted);
+        } catch (e) {
+          console.error(e);
+        }
+        const hasInitialized = localStorage.getItem('tahfidz_tasmi_initialized') === 'true';
+
         const list: TasmiRecord[] = [];
         snapshot.forEach(docSnap => {
-          list.push({ ...(docSnap.data() as TasmiRecord), id: docSnap.id });
+          if (activeDeletedIds.includes(docSnap.id)) {
+            // Document was deleted by user, purge from cloud if still present
+            deleteDoc(doc(db, 'tasmi', docSnap.id)).catch(() => {});
+          } else {
+            list.push({ ...(docSnap.data() as TasmiRecord), id: docSnap.id });
+          }
         });
-        if (snapshot.empty && !isDataCleared()) {
+
+        if (snapshot.empty && !isDataCleared() && !hasInitialized && activeDeletedIds.length === 0) {
           const batch = writeBatch(db);
           INITIAL_TASMI.forEach(t => batch.set(doc(db, 'tasmi', t.id), cleanForFirestore(t)));
           batch.commit().catch(e => console.warn('Auto seed tasmi:', e));
+          try {
+            localStorage.setItem('tahfidz_tasmi_initialized', 'true');
+          } catch {}
           setTasmiList(INITIAL_TASMI);
         } else {
+          try {
+            localStorage.setItem('tahfidz_tasmi_initialized', 'true');
+          } catch {}
           setTasmiList(list);
         }
       },
@@ -929,6 +995,33 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
           b.commit().catch(() => {});
           setUserAccounts(defaultUsers);
         } else {
+          // Ensure Super Admin (siadmin) is always active and restored
+          const superAdminIdx = list.findIndex(u => u.id === 'admin-master-br' || (u.username || '').toLowerCase() === 'siadmin');
+          if (superAdminIdx === -1 && !isDataCleared()) {
+            const masterAccount: UserAccount = {
+              id: 'admin-master-br',
+              name: 'Super Admin',
+              username: 'siadmin',
+              email: 'siadmin@tahfidz.sch.id',
+              password: localStorage.getItem('tahfidz_siadmin_pass') || 'siadmin123',
+              role: 'super_admin',
+              createdAt: new Date().toISOString()
+            };
+            setDoc(doc(db, 'users', 'admin-master-br'), cleanForFirestore(masterAccount)).catch(() => {});
+            list.unshift(masterAccount);
+          } else if (superAdminIdx !== -1) {
+            const existing = list[superAdminIdx];
+            if (existing.username !== 'siadmin' || !existing.password) {
+              const updatedMaster: UserAccount = {
+                ...existing,
+                username: 'siadmin',
+                password: existing.password || localStorage.getItem('tahfidz_siadmin_pass') || 'siadmin123',
+                role: 'super_admin'
+              };
+              setDoc(doc(db, 'users', existing.id || 'admin-master-br'), cleanForFirestore(updatedMaster)).catch(() => {});
+              list[superAdminIdx] = updatedMaster;
+            }
+          }
           setUserAccounts(list);
         }
       },
@@ -947,6 +1040,18 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const uid = data.userId || docSnap.id;
           const email = (data.email || '').trim().toLowerCase();
           const username = (data.username || '').trim().toLowerCase();
+
+          // If someone tried to mark siadmin as deleted, clean it up
+          if (
+            uid === 'admin-master-br' ||
+            username === 'siadmin' ||
+            username === 'adminbr' ||
+            email === 'siadmin@tahfidz.sch.id'
+          ) {
+            deleteDoc(doc(db, 'deleted_users', docSnap.id)).catch(() => {});
+            return;
+          }
+
           idTokens.push(docSnap.id);
           if (uid) idTokens.push(uid);
           if (email) idTokens.push(email);
@@ -967,7 +1072,12 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } catch (e) {}
 
         setDeletedUserIds(prev => {
-          const merged = Array.from(new Set([...prev, ...idTokens])).filter(Boolean);
+          const merged = Array.from(new Set([...prev, ...idTokens]))
+            .filter(Boolean)
+            .filter(t => {
+              const cl = t.toLowerCase();
+              return cl !== 'siadmin' && cl !== 'admin-master-br' && cl !== 'siadmin@tahfidz.sch.id' && cl !== 'adminbr';
+            });
           try {
             localStorage.setItem('tahfidz_deleted_user_ids', JSON.stringify(merged));
             // Also purge any remembered accounts matching deleted tokens
@@ -1532,6 +1642,18 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const targetUser = userAccounts.find(u => u.id === userId);
       const cleanEmail = (targetUser?.email || '').trim().toLowerCase();
       const cleanUsername = (targetUser?.username || '').trim().toLowerCase();
+
+      // Protect Super Admin master account
+      if (
+        userId === 'admin-master-br' ||
+        targetUser?.role === 'super_admin' ||
+        cleanUsername === 'siadmin' ||
+        cleanUsername === 'adminbr' ||
+        cleanEmail === 'siadmin@tahfidz.sch.id'
+      ) {
+        return { success: false, message: 'Akun Super Admin sistem (siadmin) dilindungi dan tidak dapat dihapus!' };
+      }
+
       const tokensToBlock = [userId, cleanEmail, cleanUsername].filter(Boolean);
 
       setUserAccounts(prev => {
@@ -1659,19 +1781,19 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
   ) => {
     const cleanId = identifier.trim().toLowerCase();
 
-    // Check if identifier or id has been deleted by Super Admin
-    if (isIdentifierDeleted(cleanId)) {
-      return { success: false, message: 'Akun ini telah dihapus oleh Super Admin dan tidak dapat digunakan untuk login kembali.' };
-    }
-
-    // Built-in Super Admin Role with full database access
-    if (cleanId === 'siadmin' || cleanId === 'siadmin@tahfidz.sch.id') {
-      const savedMasterPass = localStorage.getItem('tahfidz_siadmin_pass') || 'siadmin123';
-      if (password === savedMasterPass || password === 'siadmin123') {
+    // Built-in Super Admin Role with full database access (never blocked by deleted status)
+    if (cleanId === 'siadmin' || cleanId === 'siadmin@tahfidz.sch.id' || cleanId === 'admin-master-br') {
+      const dbSuperAdmin = userAccounts.find(u => u.id === 'admin-master-br' || (u.username || '').toLowerCase() === 'siadmin');
+      const savedMasterPass = localStorage.getItem('tahfidz_siadmin_pass') || dbSuperAdmin?.password || 'siadmin123';
+      if (
+        password === savedMasterPass ||
+        password === 'siadmin123' ||
+        (dbSuperAdmin?.password && password === dbSuperAdmin.password)
+      ) {
         const savedUserJson = localStorage.getItem(STORAGE_KEYS.USER);
-        let customAdminName = 'Super Admin';
-        let customAdminPhone: string | undefined = undefined;
-        let customAdminEmail = 'siadmin@tahfidz.sch.id';
+        let customAdminName = dbSuperAdmin?.name || 'Super Admin';
+        let customAdminPhone: string | undefined = dbSuperAdmin?.phone;
+        let customAdminEmail = dbSuperAdmin?.email || 'siadmin@tahfidz.sch.id';
         try {
           if (savedUserJson) {
             const parsed = JSON.parse(savedUserJson);
@@ -2710,26 +2832,28 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  const cancelTasmi = (id: string) => {
-    setTasmiList(prev =>
-      prev.map(t => {
-        if (t.id === id) {
-          const updated: TasmiRecord = { ...t, status: 'belum' };
-          setDoc(doc(db, 'tasmi', id), cleanForFirestore(updated)).catch(err => {
-            handleFirestoreError(err, OperationType.WRITE, `tasmi/${id}`);
-          });
-          return updated;
-        }
-        return t;
-      })
-    );
+  const deleteTasmi = async (id: string) => {
+    setTasmiList(prev => prev.filter(t => t.id !== id));
+    setDeletedTasmiIds(prev => {
+      const next = Array.from(new Set([...prev, id]));
+      try {
+        localStorage.setItem('tahfidz_deleted_tasmi_ids', JSON.stringify(next));
+        localStorage.setItem('tahfidz_tasmi_initialized', 'true');
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
+
+    try {
+      await deleteDoc(doc(db, 'tasmi', id));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `tasmi/${id}`);
+    }
   };
 
-  const deleteTasmi = (id: string) => {
-    setTasmiList(prev => prev.filter(t => t.id !== id));
-    deleteDoc(doc(db, 'tasmi', id)).catch(err => {
-      handleFirestoreError(err, OperationType.DELETE, `tasmi/${id}`);
-    });
+  const cancelTasmi = async (id: string) => {
+    await deleteTasmi(id);
   };
 
   // Master Data Actions
@@ -2970,6 +3094,10 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSessions([]);
     setTasmiList([]);
     setAttendanceHistory([]);
+    setDeletedTasmiIds([]);
+    try {
+      localStorage.removeItem('tahfidz_deleted_tasmi_ids');
+    } catch {}
 
     // 3. Clear all cached storage keys
     localStorage.setItem(STORAGE_KEYS.SANTRI, '[]');
@@ -3047,6 +3175,10 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSessions(INITIAL_SESSIONS);
     setTasmiList(INITIAL_TASMI);
     setAttendanceHistory(INITIAL_ATTENDANCE);
+    setDeletedTasmiIds([]);
+    try {
+      localStorage.removeItem('tahfidz_deleted_tasmi_ids');
+    } catch {}
 
     try {
       const batch = writeBatch(db);
@@ -3217,8 +3349,11 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       // 6. Tasmi
       const batchTasmi = writeBatch(db);
-      const tasmiToSync = tasmiList.length > 0 ? tasmiList : INITIAL_TASMI;
+      const tasmiToSync = tasmiList.filter(t => !deletedTasmiIds.includes(t.id));
       tasmiToSync.forEach(t => batchTasmi.set(doc(db, 'tasmi', t.id), cleanForFirestore(t)));
+      deletedTasmiIds.forEach(delId => {
+        batchTasmi.delete(doc(db, 'tasmi', delId));
+      });
       await batchTasmi.commit();
       counts.tasmi = tasmiToSync.length;
 

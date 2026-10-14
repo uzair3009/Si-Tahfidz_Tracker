@@ -48,6 +48,7 @@ import {
 import { Santri, Kelas, Kelompok, TargetHafalan, SesiTahfidz, UserAccount, User } from '../types';
 import { parseHafalan } from '../utils/hafalanFormat';
 import { usePersistedState } from '../utils/usePersistedState';
+import { parseNumberInput, sanitizeNumberOnBlur } from '../utils/numberInputHelper';
 
 export const KelolaDataView: React.FC = () => {
   const { 
@@ -125,7 +126,7 @@ export const KelolaDataView: React.FC = () => {
   const [schoolLeaderInput, setSchoolLeaderInput] = useState(systemSettings?.schoolLeader || 'Ustadz H. Ahmad Ridwan, Lc., M.Ag.');
   const [academicYearInput, setAcademicYearInput] = useState(systemSettings?.academicYear || '2026/2027 (Ganjil)');
   const [minTasmiGradeInput, setMinTasmiGradeInput] = useState(systemSettings?.minTasmiGrade || 'B');
-  const [weeklyTargetInput, setWeeklyTargetInput] = useState(systemSettings?.targetWeeklySetoran || 10);
+  const [weeklyTargetInput, setWeeklyTargetInput] = useState<number | ''>(systemSettings?.targetWeeklySetoran || 10);
   const [whatsappHelpdeskInput, setWhatsappHelpdeskInput] = useState(systemSettings?.helpdeskWhatsapp || '6281234567800');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
@@ -222,7 +223,7 @@ export const KelolaDataView: React.FC = () => {
 
   // Target Management State
   const [targetNama, setTargetNama] = useState('');
-  const [targetJuz, setTargetJuz] = useState(10);
+  const [targetJuz, setTargetJuz] = useState<number | ''>(10);
   const [editingTarget, setEditingTarget] = useState<TargetHafalan | null>(null);
 
   // Sesi Management State
@@ -353,8 +354,8 @@ export const KelolaDataView: React.FC = () => {
       kelasId: editingSantri.kelasId,
       gender: editingSantri.gender,
       kelompokId: editingSantri.kelompokId,
-      targetJuz: Number(editingSantri.targetJuz),
-      totalJuzMemorized: Number(editingSantri.totalJuzMemorized),
+      targetJuz: sanitizeNumberOnBlur(editingSantri.targetJuz, 30, { min: 1, max: 30 }),
+      totalJuzMemorized: sanitizeNumberOnBlur(editingSantri.totalJuzMemorized, 0, { min: 0, max: 30 }),
       orangTuaNama: editingSantri.orangTuaNama?.trim() || '',
       orangTuaPhone: editingSantri.orangTuaPhone?.trim() || ''
     });
@@ -414,8 +415,9 @@ export const KelolaDataView: React.FC = () => {
     e.preventDefault();
     if (!targetNama.trim()) return;
 
-    addTarget(targetNama, Number(targetJuz));
+    addTarget(targetNama, sanitizeNumberOnBlur(targetJuz, 10, { min: 1, max: 30 }));
     setTargetNama('');
+    setTargetJuz(10);
     showFeedback('Target hafalan baru berhasil ditambahkan!');
   };
 
@@ -423,7 +425,7 @@ export const KelolaDataView: React.FC = () => {
     e.preventDefault();
     if (!editingTarget) return;
 
-    updateTarget(editingTarget.id, editingTarget.nama, Number(editingTarget.jumlahJuz));
+    updateTarget(editingTarget.id, editingTarget.nama, sanitizeNumberOnBlur(editingTarget.jumlahJuz, 10, { min: 1, max: 30 }));
     setEditingTarget(null);
     showFeedback('Data target hafalan berhasil diperbarui!');
   };
@@ -1039,7 +1041,8 @@ export const KelolaDataView: React.FC = () => {
                   min={1}
                   max={30}
                   value={targetJuz}
-                  onChange={e => setTargetJuz(Number(e.target.value))}
+                  onChange={e => setTargetJuz(parseNumberInput(e.target.value, { min: 1, max: 30 }))}
+                  onBlur={() => setTargetJuz(prev => sanitizeNumberOnBlur(prev, 10, { min: 1, max: 30 }))}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-750 focus:ring-2 focus:ring-emerald-500 outline-none"
                   required
                 />
@@ -1858,7 +1861,7 @@ export const KelolaDataView: React.FC = () => {
                     schoolLeader: schoolLeaderInput,
                     academicYear: academicYearInput,
                     minTasmiGrade: minTasmiGradeInput,
-                    targetWeeklySetoran: Number(weeklyTargetInput),
+                    targetWeeklySetoran: sanitizeNumberOnBlur(weeklyTargetInput, 10, { min: 1, max: 50 }),
                     helpdeskWhatsapp: whatsappHelpdeskInput
                   });
                   setIsSavingSettings(false);
@@ -1934,7 +1937,8 @@ export const KelolaDataView: React.FC = () => {
                       min={1}
                       max={50}
                       value={weeklyTargetInput}
-                      onChange={e => setWeeklyTargetInput(Number(e.target.value))}
+                      onChange={e => setWeeklyTargetInput(parseNumberInput(e.target.value, { min: 1, max: 50 }))}
+                      onBlur={() => setWeeklyTargetInput(prev => sanitizeNumberOnBlur(prev, 10, { min: 1, max: 50 }))}
                       className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl text-xs sm:text-sm focus:bg-white dark:focus:bg-slate-850 focus:ring-2 focus:ring-amber-500 outline-none"
                     />
                     <span className="text-[11px] text-slate-400 dark:text-slate-500">Digunakan sebagai parameter capaian pada grafik tren hafalan.</span>
@@ -2798,7 +2802,8 @@ export const KelolaDataView: React.FC = () => {
                     min={1}
                     max={30}
                     value={editingSantri.targetJuz}
-                    onChange={e => setEditingSantri({ ...editingSantri, targetJuz: Number(e.target.value) })}
+                    onChange={e => setEditingSantri({ ...editingSantri, targetJuz: parseNumberInput(e.target.value, { min: 1, max: 30 }) as any })}
+                    onBlur={() => setEditingSantri(prev => prev ? ({ ...prev, targetJuz: sanitizeNumberOnBlur(prev.targetJuz, 30, { min: 1, max: 30 }) }) : null)}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -2810,8 +2815,10 @@ export const KelolaDataView: React.FC = () => {
                   type="number"
                   min={0}
                   max={30}
+                  step="0.1"
                   value={editingSantri.totalJuzMemorized}
-                  onChange={e => setEditingSantri({ ...editingSantri, totalJuzMemorized: Number(e.target.value) })}
+                  onChange={e => setEditingSantri({ ...editingSantri, totalJuzMemorized: parseNumberInput(e.target.value, { min: 0, max: 30, allowFloat: true }) as any })}
+                  onBlur={() => setEditingSantri(prev => prev ? ({ ...prev, totalJuzMemorized: sanitizeNumberOnBlur(prev.totalJuzMemorized, 0, { min: 0, max: 30 }) }) : null)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
@@ -3085,7 +3092,8 @@ export const KelolaDataView: React.FC = () => {
                   min={1}
                   max={30}
                   value={editingTarget.jumlahJuz}
-                  onChange={e => setEditingTarget({ ...editingTarget, jumlahJuz: Number(e.target.value) })}
+                  onChange={e => setEditingTarget({ ...editingTarget, jumlahJuz: parseNumberInput(e.target.value, { min: 1, max: 30 }) as any })}
+                  onBlur={() => setEditingTarget(prev => prev ? ({ ...prev, jumlahJuz: sanitizeNumberOnBlur(prev.jumlahJuz, 10, { min: 1, max: 30 }) }) : null)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   required
                 />

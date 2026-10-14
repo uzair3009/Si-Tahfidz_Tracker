@@ -37,8 +37,10 @@ import {
   History,
   Copy,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Info
 } from 'lucide-react';
+import { DeveloperInfoModal } from './DeveloperInfoModal';
 import { Role, User } from '../types';
 
 const REMEMBERED_ACCOUNTS_KEY = 'tahfidz_remembered_accounts_v1';
@@ -102,6 +104,7 @@ export const AuthScreen: React.FC = () => {
 
   const [view, setView] = useState<ViewMode>('selection');
   const [forgotReturnView, setForgotReturnView] = useState<'guru-login' | 'parent-login'>('guru-login');
+  const [isDevInfoOpen, setIsDevInfoOpen] = useState(false);
 
   // Remembered accounts state (sorted by most recently used)
   const [rememberedAccounts, setRememberedAccounts] = useState<RememberedAccountInfo[]>(() => {
@@ -1111,6 +1114,7 @@ export const AuthScreen: React.FC = () => {
                 </div>
               )}
 
+
               <div>
                 <label className="block text-xs font-medium text-emerald-100 mb-1 flex items-center gap-1">
                   <UserIcon className="w-3.5 h-3.5" /> Username atau Email
@@ -1892,6 +1896,21 @@ export const AuthScreen: React.FC = () => {
         )}
       </div>
 
+      {/* Footer info & developer link */}
+      <div className="mt-6 mb-4 text-center text-xs text-emerald-100/80 space-y-2 relative z-10">
+        <p>Tahfidz Tracker · Sistem Pencatatan & Evaluasi Hafalan Al-Qur'an Terpadu</p>
+        <div>
+          <button
+            type="button"
+            onClick={() => setIsDevInfoOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold border border-white/20 transition-all cursor-pointer backdrop-blur-xs shadow-xs"
+          >
+            <Info className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+            <span>Info & Pesan Pengembang (Abu Uzair)</span>
+          </button>
+        </div>
+      </div>
+
       {/* Modal Aktivasi Popup Bawaan Firebase Auth di Domain Vercel */}
       {isGoogleFallbackOpen && (
         <div
@@ -2082,6 +2101,12 @@ export const AuthScreen: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Developer Info Modal */}
+      <DeveloperInfoModal
+        isOpen={isDevInfoOpen}
+        onClose={() => setIsDevInfoOpen(false)}
+      />
     </div>
   );
 };

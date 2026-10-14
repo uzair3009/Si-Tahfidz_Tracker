@@ -411,11 +411,11 @@ export const TasmiView: React.FC = () => {
                             <span className="text-[10px] text-red-700 dark:text-rose-300 font-semibold px-1">Hapus?</span>
                             <button
                               type="button"
-                              onClick={() => {
-                                deleteTasmi(record.id);
+                              onClick={async () => {
+                                await deleteTasmi(record.id);
                                 setConfirmDeleteTasmiId(null);
                               }}
-                              className="px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold"
+                              className="px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold cursor-pointer"
                             >
                               Ya
                             </button>
@@ -467,7 +467,8 @@ export const TasmiView: React.FC = () => {
                           Edit Jadwal
                         </button>
                         <button
-                          onClick={() => cancelTasmi(record.id)}
+                          type="button"
+                          onClick={() => setConfirmDeleteTasmiId(record.id)}
                           className="px-3 py-1.5 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/50 rounded-lg text-xs font-medium transition-colors"
                         >
                           Batalkan Jadwal
@@ -477,11 +478,11 @@ export const TasmiView: React.FC = () => {
                             <span className="text-[10px] text-red-700 dark:text-rose-300 font-semibold px-1">Hapus?</span>
                             <button
                               type="button"
-                              onClick={() => {
-                                deleteTasmi(record.id);
+                              onClick={async () => {
+                                await deleteTasmi(record.id);
                                 setConfirmDeleteTasmiId(null);
                               }}
-                              className="px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold"
+                              className="px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold cursor-pointer"
                             >
                               Ya
                             </button>
@@ -520,11 +521,11 @@ export const TasmiView: React.FC = () => {
                             <span className="text-[10px] text-red-700 dark:text-rose-300 font-semibold px-1">Hapus?</span>
                             <button
                               type="button"
-                              onClick={() => {
-                                deleteTasmi(record.id);
+                              onClick={async () => {
+                                await deleteTasmi(record.id);
                                 setConfirmDeleteTasmiId(null);
                               }}
-                              className="px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold"
+                              className="px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold cursor-pointer"
                             >
                               Ya
                             </button>

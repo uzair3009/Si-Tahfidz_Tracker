@@ -9,7 +9,8 @@ import { AbsensiView } from './components/AbsensiView';
 import { TasmiView } from './components/TasmiView';
 import { KelolaDataView } from './components/KelolaDataView';
 import { AddHafalanModal } from './components/AddHafalanModal';
-import { Megaphone, AlertTriangle, ShieldCheck, Wrench, ArrowRight, X, Phone } from 'lucide-react';
+import { DeveloperInfoModal } from './components/DeveloperInfoModal';
+import { Megaphone, AlertTriangle, ShieldCheck, Wrench, ArrowRight, X, Phone, Info } from 'lucide-react';
 
 function MainAppContent() {
   const { 
@@ -23,6 +24,7 @@ function MainAppContent() {
   } = useTahfidz();
   const [isAddHafalanModalOpen, setIsAddHafalanModalOpen] = useState(false);
   const [isAnnouncementDismissed, setIsAnnouncementDismissed] = useState(false);
+  const [isDevInfoOpen, setIsDevInfoOpen] = useState(false);
 
   React.useEffect(() => {
     setIsAnnouncementDismissed(false);
@@ -184,10 +186,27 @@ function MainAppContent() {
       <BottomNav />
 
       {/* Quiet Footer */}
-      <footer className="hidden md:block py-6 border-t border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 text-center text-xs text-slate-400 dark:text-slate-500 transition-colors">
+      <footer className="py-6 border-t border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 text-center text-xs text-slate-400 dark:text-slate-500 transition-colors">
         <p>{systemSettings.schoolName || 'Tahfidz Tracker'} · Sistem Pencatatan & Evaluasi Hafalan Al-Qur'an Terpadu</p>
-        <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">بارك الله فيكم · Dibuat dengan penuh dedikasi untuk para penghafal Al-Qur'an</p>
+        <div className="mt-2 flex items-center justify-center gap-2 flex-wrap text-[11px]">
+          <span>بارك الله فيكم · Dibuat dengan penuh dedikasi untuk para penghafal Al-Qur'an</span>
+          <span>·</span>
+          <button
+            type="button"
+            onClick={() => setIsDevInfoOpen(true)}
+            className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold underline underline-offset-2 cursor-pointer transition-colors"
+          >
+            <Info className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>Info & Pesan Pengembang (Abu Uzair)</span>
+          </button>
+        </div>
       </footer>
+
+      {/* Developer Info Modal */}
+      <DeveloperInfoModal
+        isOpen={isDevInfoOpen}
+        onClose={() => setIsDevInfoOpen(false)}
+      />
     </div>
   );
 }

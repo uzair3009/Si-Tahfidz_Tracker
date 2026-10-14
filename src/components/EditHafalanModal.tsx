@@ -7,6 +7,7 @@ import { parseHafalan } from '../utils/hafalanFormat';
 import { getTodayWIB } from '../utils/dateWIB';
 import { EditKeteranganHafalanForm } from './EditKeteranganHafalanModal';
 import { FeatureHint } from './FeatureHint';
+import { parseNumberInput, sanitizeNumberOnBlur } from '../utils/numberInputHelper';
 
 interface EditHafalanModalProps {
   student: Santri;
@@ -34,8 +35,8 @@ export const EditHafalanModal: React.FC<EditHafalanModalProps> = ({
   const [activeFormTab, setActiveFormTab] = useState<'juz' | 'surah' | 'ayat'>('surah');
   const [juz, setJuz] = useState<number>(1);
   const [surahNumber, setSurahNumber] = useState<number>(1);
-  const [ayatMulai, setAyatMulai] = useState<number>(1);
-  const [ayatSelesai, setAyatSelesai] = useState<number>(7);
+  const [ayatMulai, setAyatMulai] = useState<number | ''>(1);
+  const [ayatSelesai, setAyatSelesai] = useState<number | ''>(7);
   const [kualitas, setKualitas] = useState<HafalanQuality>('A');
   const [type, setType] = useState<HafalanType>('baru');
   const [catatan, setCatatan] = useState('');
@@ -59,6 +60,9 @@ export const EditHafalanModal: React.FC<EditHafalanModalProps> = ({
       surahName = `Juz ${juz} Lengkap`;
     }
 
+    const safeAyatMulai = typeof ayatMulai === 'number' && ayatMulai > 0 ? ayatMulai : 1;
+    const safeAyatSelesai = typeof ayatSelesai === 'number' && ayatSelesai > 0 ? ayatSelesai : (currentSurah?.totalAyahs || 7);
+
     addHafalanRecord({
       studentId: student.id,
       studentName: student.nama,
@@ -67,8 +71,8 @@ export const EditHafalanModal: React.FC<EditHafalanModalProps> = ({
       juz,
       surahNumber: activeFormTab !== 'juz' ? surahNumber : undefined,
       surahName,
-      ayatMulai: activeFormTab !== 'juz' ? ayatMulai : undefined,
-      ayatSelesai: activeFormTab !== 'juz' ? ayatSelesai : undefined,
+      ayatMulai: activeFormTab !== 'juz' ? safeAyatMulai : undefined,
+      ayatSelesai: activeFormTab !== 'juz' ? safeAyatSelesai : undefined,
       kualitas,
       catatan,
       tanggal
@@ -259,7 +263,8 @@ export const EditHafalanModal: React.FC<EditHafalanModalProps> = ({
                       min={1}
                       max={currentSurah?.totalAyahs || 286}
                       value={ayatMulai}
-                      onChange={e => setAyatMulai(Number(e.target.value))}
+                      onChange={e => setAyatMulai(parseNumberInput(e.target.value, { min: 1, max: currentSurah?.totalAyahs || 286 }))}
+                      onBlur={() => setAyatMulai(prev => sanitizeNumberOnBlur(prev, 1, { min: 1, max: currentSurah?.totalAyahs || 286 }))}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100"
                       required
                     />
@@ -268,10 +273,11 @@ export const EditHafalanModal: React.FC<EditHafalanModalProps> = ({
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Ayat Selesai</label>
                     <input
                       type="number"
-                      min={ayatMulai}
+                      min={typeof ayatMulai === 'number' ? ayatMulai : 1}
                       max={currentSurah?.totalAyahs || 286}
                       value={ayatSelesai}
-                      onChange={e => setAyatSelesai(Number(e.target.value))}
+                      onChange={e => setAyatSelesai(parseNumberInput(e.target.value, { min: 1, max: currentSurah?.totalAyahs || 286 }))}
+                      onBlur={() => setAyatSelesai(prev => sanitizeNumberOnBlur(prev, currentSurah?.totalAyahs || 7, { min: typeof ayatMulai === 'number' ? ayatMulai : 1, max: currentSurah?.totalAyahs || 286 }))}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100"
                       required
                     />
@@ -430,8 +436,17 @@ export const EditHafalanModal: React.FC<EditHafalanModalProps> = ({
                             <input
                               type="number"
                               min={1}
-                              value={editRecordDraft.ayatMulai ?? item.ayatMulai ?? 1}
-                              onChange={e => setEditRecordDraft(prev => ({ ...prev, ayatMulai: Number(e.target.value) }))}
+                              value={editRecordDraft.ayatMulai !== undefined ? editRecordDraft.ayatMulai : (item.ayatMulai ?? 1)}
+                              onChange={e => {
+                                const parsed = parseNumberInput(e.target.value, { min: 1 });
+                                setEditRecordDraft(prev => ({ ...prev, ayatMulai: parsed as any }));
+                              }}
+                              onBlur={() => {
+                                setEditRecordDraft(prev => ({
+                                  ...prev,
+                                  ayatMulai: sanitizeNumberOnBlur(prev.ayatMulai, item.ayatMulai || 1, { min: 1 })
+                                }));
+                              }}
                               className="w-full px-2 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-slate-100"
                             />
                           </div>
@@ -441,8 +456,17 @@ export const EditHafalanModal: React.FC<EditHafalanModalProps> = ({
                             <input
                               type="number"
                               min={1}
-                              value={editRecordDraft.ayatSelesai ?? item.ayatSelesai ?? 7}
-                              onChange={e => setEditRecordDraft(prev => ({ ...prev, ayatSelesai: Number(e.target.value) }))}
+                              value={editRecordDraft.ayatSelesai !== undefined ? editRecordDraft.ayatSelesai : (item.ayatSelesai ?? 7)}
+                              onChange={e => {
+                                const parsed = parseNumberInput(e.target.value, { min: 1 });
+                                setEditRecordDraft(prev => ({ ...prev, ayatSelesai: parsed as any }));
+                              }}
+                              onBlur={() => {
+                                setEditRecordDraft(prev => ({
+                                  ...prev,
+                                  ayatSelesai: sanitizeNumberOnBlur(prev.ayatSelesai, item.ayatSelesai || 7, { min: 1 })
+                                }));
+                              }}
                               className="w-full px-2 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-slate-100"
                             />
                           </div>
