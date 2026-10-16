@@ -38,7 +38,7 @@ import {
   Copy,
   ExternalLink,
   RefreshCw,
-  Heart
+  Code2
 } from 'lucide-react';
 import { DeveloperInfoModal } from './DeveloperInfoModal';
 import { Role, User } from '../types';
@@ -945,24 +945,24 @@ export const AuthScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-950 flex flex-col items-center justify-center p-3 sm:p-6 py-6 sm:py-10 relative overflow-y-auto">
       {/* Subtle Islamic geometric ambient patterns */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative z-10">
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl sm:rounded-3xl p-4 sm:p-7 md:p-8 text-white shadow-2xl relative z-10">
         {/* Brand Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-5 sm:mb-6">
           <img
             src="/pwa-192x192.png"
             alt="Tahfidz Tracker"
             referrerPolicy="no-referrer"
-            className="w-20 h-20 rounded-2xl object-cover mx-auto mb-3 shadow-lg border border-white/25"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover mx-auto mb-2.5 shadow-lg border border-white/25"
           />
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
             Tahfidz Tracker
           </h1>
-          <p className="text-emerald-100/90 text-xs sm:text-sm mt-1">
+          <p className="text-emerald-100/90 text-xs sm:text-sm mt-0.5 sm:mt-1">
             Sistem Pencatatan Hafalan Al-Qur'an Terpadu
           </p>
         </div>
@@ -1044,40 +1044,40 @@ export const AuthScreen: React.FC = () => {
 
               <button
                 onClick={() => changeView('guru-login')}
-                className="w-full flex items-center justify-between p-4 bg-white/15 hover:bg-white/25 border border-white/25 rounded-2xl transition-all duration-200 text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-3.5 sm:p-4 bg-white/15 hover:bg-white/25 active:scale-[0.99] border border-white/25 rounded-xl sm:rounded-2xl transition-all duration-200 text-left group cursor-pointer"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-500/30 flex items-center justify-center text-emerald-200 shadow-sm shrink-0">
-                    <ShieldCheck className="w-6 h-6" />
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-500/30 flex items-center justify-center text-emerald-200 shadow-sm shrink-0">
+                    <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <div>
-                    <div className="font-semibold text-white text-base">Masuk Sebagai Guru / Asatidz</div>
-                    <div className="text-xs text-emerald-100/80">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-white text-sm sm:text-base leading-snug">Masuk Sebagai Guru / Asatidz</div>
+                    <div className="text-[11px] sm:text-xs text-emerald-100/80 truncate">
                       Kelola santri, setoran hafalan, & absensi halaqah
                     </div>
                   </div>
                 </div>
-                <span className="text-emerald-300 group-hover:translate-x-1 transition-transform font-bold">
+                <span className="text-emerald-300 group-hover:translate-x-1 transition-transform font-bold shrink-0 ml-1">
                   →
                 </span>
               </button>
 
               <button
                 onClick={() => changeView('parent-login')}
-                className="w-full flex items-center justify-between p-4 bg-white/15 hover:bg-white/25 border border-white/25 rounded-2xl transition-all duration-200 text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-3.5 sm:p-4 bg-white/15 hover:bg-white/25 active:scale-[0.99] border border-white/25 rounded-xl sm:rounded-2xl transition-all duration-200 text-left group cursor-pointer"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-teal-500/30 flex items-center justify-center text-teal-200 shadow-sm shrink-0">
-                    <HeartHandshake className="w-6 h-6" />
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-teal-500/30 flex items-center justify-center text-teal-200 shadow-sm shrink-0">
+                    <HeartHandshake className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <div>
-                    <div className="font-semibold text-white text-base">Masuk Sebagai Wali Santri</div>
-                    <div className="text-xs text-emerald-100/80">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-white text-sm sm:text-base leading-snug">Masuk Sebagai Wali Santri</div>
+                    <div className="text-[11px] sm:text-xs text-emerald-100/80 truncate">
                       Pantau perkembangan mutqin & kehadiran ananda
                     </div>
                   </div>
                 </div>
-                <span className="text-emerald-300 group-hover:translate-x-1 transition-transform font-bold">
+                <span className="text-emerald-300 group-hover:translate-x-1 transition-transform font-bold shrink-0 ml-1">
                   →
                 </span>
               </button>
@@ -1116,7 +1116,7 @@ export const AuthScreen: React.FC = () => {
 
 
               <div>
-                <label className="block text-xs font-medium text-emerald-100 mb-1 flex items-center gap-1">
+                <label className="block text-xs font-medium text-emerald-100 mb-1.5 flex items-center gap-1">
                   <UserIcon className="w-3.5 h-3.5" /> Username atau Email
                 </label>
                 <input
@@ -1124,20 +1124,20 @@ export const AuthScreen: React.FC = () => {
                   value={loginIdentifier}
                   onChange={e => setLoginIdentifier(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2.5 bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  className="w-full px-3.5 py-2.5 sm:py-2.5 min-h-[44px] bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                   placeholder="Masukkan username atau email"
                 />
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-medium text-emerald-100 flex items-center gap-1">
                     <Lock className="w-3.5 h-3.5" /> Password
                   </label>
                   <button
                     type="button"
                     onClick={() => openForgotPassword('guru-login')}
-                    className="text-xs font-medium text-emerald-300 hover:text-white underline underline-offset-2 cursor-pointer"
+                    className="text-xs font-medium text-emerald-300 hover:text-white underline underline-offset-2 cursor-pointer py-1"
                   >
                     Lupa Password?
                   </button>
@@ -1148,13 +1148,13 @@ export const AuthScreen: React.FC = () => {
                     value={loginPassword}
                     onChange={e => setLoginPassword(e.target.value)}
                     required
-                    className="w-full pl-3.5 pr-10 py-2.5 bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    className="w-full pl-3.5 pr-10 py-2.5 min-h-[44px] bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowLoginPassword(prev => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2 rounded-lg transition-colors cursor-pointer"
                     title={showLoginPassword ? 'Sembunyikan password' : 'Lihat password'}
                   >
                     {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -1163,12 +1163,12 @@ export const AuthScreen: React.FC = () => {
               </div>
 
               {/* Checkbox Ingat Akun */}
-              <label className="flex items-center gap-2 text-xs text-emerald-100/90 cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-xs text-emerald-100/90 cursor-pointer select-none py-1">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={e => setRememberMe(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-white/30 bg-white/10 text-emerald-500 focus:ring-emerald-400 cursor-pointer"
+                  className="w-4 h-4 rounded border-white/30 bg-white/10 text-emerald-500 focus:ring-emerald-400 cursor-pointer"
                 />
                 <span>Ingat akun terakhir yang digunakan untuk masuk</span>
               </label>
@@ -1176,7 +1176,7 @@ export const AuthScreen: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || isGoogleLoading}
-                className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 min-h-[44px] bg-emerald-500 hover:bg-emerald-600 active:scale-[0.99] disabled:opacity-50 text-slate-950 font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <LogIn className="w-4 h-4" />
                 {isSubmitting ? 'Memeriksa Akun...' : 'Masuk Sekarang'}
@@ -1244,7 +1244,7 @@ export const AuthScreen: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-xs font-medium text-emerald-100 mb-1 flex items-center gap-1">
+                <label className="block text-xs font-medium text-emerald-100 mb-1.5 flex items-center gap-1">
                   <Mail className="w-3.5 h-3.5" /> Email atau Username Terdaftar
                 </label>
                 <input
@@ -1252,20 +1252,20 @@ export const AuthScreen: React.FC = () => {
                   value={loginIdentifier}
                   onChange={e => setLoginIdentifier(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2.5 bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-3.5 py-2.5 min-h-[44px] bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
                   placeholder="Masukkan email atau username"
                 />
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-medium text-emerald-100 flex items-center gap-1">
                     <Lock className="w-3.5 h-3.5" /> Password
                   </label>
                   <button
                     type="button"
                     onClick={() => openForgotPassword('parent-login')}
-                    className="text-xs font-medium text-teal-300 hover:text-white underline underline-offset-2 cursor-pointer"
+                    className="text-xs font-medium text-teal-300 hover:text-white underline underline-offset-2 cursor-pointer py-1"
                   >
                     Lupa Password?
                   </button>
@@ -1276,13 +1276,13 @@ export const AuthScreen: React.FC = () => {
                     value={loginPassword}
                     onChange={e => setLoginPassword(e.target.value)}
                     required
-                    className="w-full pl-3.5 pr-10 py-2.5 bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                    className="w-full pl-3.5 pr-10 py-2.5 min-h-[44px] bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowLoginPassword(prev => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2 rounded-lg transition-colors cursor-pointer"
                     title={showLoginPassword ? 'Sembunyikan password' : 'Lihat password'}
                   >
                     {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -1291,12 +1291,12 @@ export const AuthScreen: React.FC = () => {
               </div>
 
               {/* Checkbox Ingat Akun */}
-              <label className="flex items-center gap-2 text-xs text-emerald-100/90 cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-xs text-emerald-100/90 cursor-pointer select-none py-1">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={e => setRememberMe(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-white/30 bg-white/10 text-teal-400 focus:ring-teal-400 cursor-pointer"
+                  className="w-4 h-4 rounded border-white/30 bg-white/10 text-teal-400 focus:ring-teal-400 cursor-pointer"
                 />
                 <span>Ingat akun terakhir yang digunakan untuk masuk</span>
               </label>
@@ -1304,7 +1304,7 @@ export const AuthScreen: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || isGoogleLoading}
-                className="w-full py-3 bg-teal-400 hover:bg-teal-500 disabled:opacity-50 text-slate-950 font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 min-h-[44px] bg-teal-400 hover:bg-teal-500 active:scale-[0.99] disabled:opacity-50 text-slate-950 font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <LogIn className="w-4 h-4" />
                 {isSubmitting ? 'Memverifikasi...' : 'Masuk Pantau Santri'}
@@ -1401,7 +1401,7 @@ export const AuthScreen: React.FC = () => {
                 value={forgotIdentifier}
                 onChange={e => setForgotIdentifier(e.target.value)}
                 required
-                className="w-full px-3.5 py-2.5 bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                className="w-full px-3.5 py-2.5 min-h-[44px] bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 placeholder="Masukkan email atau username akun Anda"
               />
             </div>
@@ -1416,13 +1416,13 @@ export const AuthScreen: React.FC = () => {
                   value={forgotNewPassword}
                   onChange={e => setForgotNewPassword(e.target.value)}
                   required
-                  className="w-full pl-3.5 pr-10 py-2.5 bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  className="w-full pl-3.5 pr-10 py-2.5 min-h-[44px] bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                   placeholder="Minimal 6 karakter"
                 />
                 <button
                   type="button"
                   onClick={() => setShowForgotPassword(prev => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2 rounded-lg transition-colors cursor-pointer"
                   title={showForgotPassword ? 'Sembunyikan password' : 'Lihat password'}
                 >
                   {showForgotPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -1440,13 +1440,13 @@ export const AuthScreen: React.FC = () => {
                   value={forgotConfirmPassword}
                   onChange={e => setForgotConfirmPassword(e.target.value)}
                   required
-                  className="w-full pl-3.5 pr-10 py-2.5 bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  className="w-full pl-3.5 pr-10 py-2.5 min-h-[44px] bg-white/15 border border-white/25 rounded-xl text-white placeholder-white/50 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                   placeholder="Ulangi password baru"
                 />
                 <button
                   type="button"
                   onClick={() => setShowForgotConfirmPassword(prev => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2 rounded-lg transition-colors cursor-pointer"
                   title={showForgotConfirmPassword ? 'Sembunyikan password' : 'Lihat password'}
                 >
                   {showForgotConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -1457,7 +1457,7 @@ export const AuthScreen: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 min-h-[44px] bg-amber-400 hover:bg-amber-300 active:scale-[0.99] disabled:opacity-50 text-slate-950 font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               <KeyRound className="w-4 h-4" />
               {isSubmitting ? 'Memperbarui Password...' : 'Simpan Password Baru'}
@@ -1905,7 +1905,7 @@ export const AuthScreen: React.FC = () => {
             onClick={() => setIsDevInfoOpen(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold border border-white/20 transition-all cursor-pointer backdrop-blur-xs shadow-xs"
           >
-            <Heart className="w-3.5 h-3.5 text-rose-300 fill-rose-300/30" />
+            <Code2 className="w-3.5 h-3.5 text-emerald-300" />
             <span>Info & Pesan Pengembang (Abu Uzair)</span>
           </button>
         </div>

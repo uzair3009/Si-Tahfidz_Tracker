@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   X, 
-  Heart, 
   Mail, 
   MessageCircle, 
   Copy, 
@@ -266,7 +265,7 @@ export const DeveloperInfoModal: React.FC<DeveloperInfoModalProps> = ({ isOpen, 
                   : 'bg-white dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-slate-700 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700'
               }`}
             >
-              <Heart className={`w-4 h-4 ${hasPrayed ? 'fill-white text-white' : 'text-rose-500'}`} />
+              <Sparkles className={`w-4 h-4 ${hasPrayed ? 'text-amber-300' : 'text-amber-500'}`} />
               <span>{hasPrayed ? 'Aamiin ya Rabbal \'Alamin 🤲 (Jazakumullah Khair)' : 'Kirim Doa Kebaikan untuk Pengembang 🤲'}</span>
             </button>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTahfidz } from '../context/TahfidzContext';
-import { BookOpen, LogOut, Cloud, RefreshCw, Moon, Sun, User, Edit3, ChevronDown, Key, Users, Check, Heart } from 'lucide-react';
+import { BookOpen, LogOut, Cloud, RefreshCw, Moon, Sun, User, Edit3, ChevronDown, Key, Users, Check, Code2 } from 'lucide-react';
 import { ProfileModal } from './ProfileModal';
 import { PWAInstallButton } from './PWAInstallButton';
 import { DeveloperInfoModal } from './DeveloperInfoModal';
@@ -162,16 +162,6 @@ export const Navbar: React.FC = () => {
               </div>
             )}
 
-            {/* Developer Info Button */}
-            <button
-              onClick={() => setIsDevInfoOpen(true)}
-              title="Informasi & Pesan Pengembang (Abu Uzair)"
-              className="p-2 sm:px-2.5 sm:py-2 text-xs font-semibold rounded-xl border transition-all flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/70 hover:bg-emerald-100/90 text-emerald-800 border-emerald-200/70 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 dark:text-emerald-300 dark:border-emerald-800/60 shadow-2xs cursor-pointer"
-            >
-              <Heart className="w-4 h-4 text-rose-500 fill-rose-500/20 shrink-0" />
-              <span className="hidden lg:inline text-[11px] font-semibold">Pengembang</span>
-            </button>
-
             {/* PWA Install Button */}
             <PWAInstallButton variant="navbar" />
 
@@ -314,7 +304,7 @@ export const Navbar: React.FC = () => {
                       }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-left"
                     >
-                      <Heart className="w-4 h-4 text-rose-500" />
+                      <Code2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                       <div>
                         <div>Info Pengembang</div>
                         <span className="text-[10px] text-slate-400 block font-normal">Pesan & kontak Abu Uzair</span>

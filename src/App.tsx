@@ -10,7 +10,7 @@ import { TasmiView } from './components/TasmiView';
 import { KelolaDataView } from './components/KelolaDataView';
 import { AddHafalanModal } from './components/AddHafalanModal';
 import { DeveloperInfoModal } from './components/DeveloperInfoModal';
-import { Megaphone, AlertTriangle, ShieldCheck, Wrench, ArrowRight, X, Phone, Heart } from 'lucide-react';
+import { Megaphone, AlertTriangle, ShieldCheck, Wrench, ArrowRight, X, Phone, Code2 } from 'lucide-react';
 
 function MainAppContent() {
   const { 
@@ -194,9 +194,9 @@ function MainAppContent() {
           <button
             type="button"
             onClick={() => setIsDevInfoOpen(true)}
-            className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold underline underline-offset-2 cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold underline underline-offset-2 cursor-pointer transition-colors"
           >
-            <Heart className="w-3 h-3 text-rose-500" />
+            <Code2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
             <span>Info & Pesan Pengembang (Abu Uzair)</span>
           </button>
         </div>

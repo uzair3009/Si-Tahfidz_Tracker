@@ -749,12 +749,46 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [attendanceHistory]);
 
   const hasLoadedRef = useRef(false);
+  const hasDbInitializedRef = useRef(false);
+  const isCloudDataClearedRef = useRef(false);
 
   // Real-time Firestore Listeners
   useEffect(() => {
     testConnection().then(connected => {
       if (!connected) setCloudSyncStatus('offline');
     });
+
+    // Real-time system configuration listener (tracks global cleared/initialized state across all devices)
+    const unsubSystemConfig = onSnapshot(
+      doc(db, 'system', 'config'),
+      docSnap => {
+        if (docSnap.exists()) {
+          hasDbInitializedRef.current = true;
+          const cfg = docSnap.data();
+          const cleared = Boolean(cfg?.dataCleared);
+          isCloudDataClearedRef.current = cleared;
+          if (cleared) {
+            try {
+              localStorage.setItem(STORAGE_KEYS.CLEARED, 'true');
+            } catch {}
+            setSantriList([]);
+            setClasses([]);
+            setGroups([]);
+            setTargets([]);
+            setSessions([]);
+            setTasmiList([]);
+            setAttendanceHistory([]);
+          } else {
+            try {
+              localStorage.removeItem(STORAGE_KEYS.CLEARED);
+            } catch {}
+          }
+        }
+      },
+      err => {
+        console.warn('System config listener:', err);
+      }
+    );
 
     const unsubSantri = onSnapshot(
       collection(db, 'santri'),
@@ -763,12 +797,19 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         snapshot.forEach(docSnap => {
           list.push({ ...(docSnap.data() as Santri), id: docSnap.id });
         });
-        if (snapshot.empty && !isDataCleared()) {
+        if (snapshot.empty && !hasDbInitializedRef.current && !isDataCleared() && !isCloudDataClearedRef.current) {
           const batch = writeBatch(db);
           INITIAL_SANTRI.forEach(s => batch.set(doc(db, 'santri', s.id), cleanForFirestore(s)));
+          batch.set(doc(db, 'system', 'config'), {
+            initialized: true,
+            dataCleared: false,
+            createdAt: new Date().toISOString()
+          });
           batch.commit().catch(e => console.warn('Auto seed santri:', e));
+          hasDbInitializedRef.current = true;
           setSantriList(INITIAL_SANTRI);
         } else {
+          if (!snapshot.empty) hasDbInitializedRef.current = true;
           setSantriList(list);
         }
         setIsCloudSynced(true);
@@ -787,7 +828,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         snapshot.forEach(docSnap => {
           list.push({ ...(docSnap.data() as AttendanceRecord), id: docSnap.id });
         });
-        if (snapshot.empty && !isDataCleared()) {
+        if (snapshot.empty && !hasDbInitializedRef.current && !isDataCleared() && !isCloudDataClearedRef.current) {
           const batch = writeBatch(db);
           INITIAL_ATTENDANCE.forEach(a => batch.set(doc(db, 'attendance', a.id), cleanForFirestore(a)));
           batch.commit().catch(e => console.warn('Auto seed attendance:', e));
@@ -805,37 +846,17 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const unsubTasmi = onSnapshot(
       collection(db, 'tasmi'),
       snapshot => {
-        let activeDeletedIds: string[] = [];
-        try {
-          const rawDeleted = localStorage.getItem('tahfidz_deleted_tasmi_ids');
-          if (rawDeleted) activeDeletedIds = JSON.parse(rawDeleted);
-        } catch (e) {
-          console.error(e);
-        }
-        const hasInitialized = localStorage.getItem('tahfidz_tasmi_initialized') === 'true';
-
         const list: TasmiRecord[] = [];
         snapshot.forEach(docSnap => {
-          if (activeDeletedIds.includes(docSnap.id)) {
-            // Document was deleted by user, purge from cloud if still present
-            deleteDoc(doc(db, 'tasmi', docSnap.id)).catch(() => {});
-          } else {
-            list.push({ ...(docSnap.data() as TasmiRecord), id: docSnap.id });
-          }
+          list.push({ ...(docSnap.data() as TasmiRecord), id: docSnap.id });
         });
 
-        if (snapshot.empty && !isDataCleared() && !hasInitialized && activeDeletedIds.length === 0) {
+        if (snapshot.empty && !hasDbInitializedRef.current && !isDataCleared() && !isCloudDataClearedRef.current) {
           const batch = writeBatch(db);
           INITIAL_TASMI.forEach(t => batch.set(doc(db, 'tasmi', t.id), cleanForFirestore(t)));
           batch.commit().catch(e => console.warn('Auto seed tasmi:', e));
-          try {
-            localStorage.setItem('tahfidz_tasmi_initialized', 'true');
-          } catch {}
           setTasmiList(INITIAL_TASMI);
         } else {
-          try {
-            localStorage.setItem('tahfidz_tasmi_initialized', 'true');
-          } catch {}
           setTasmiList(list);
         }
       },
@@ -851,7 +872,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         snapshot.forEach(docSnap => {
           list.push({ ...(docSnap.data() as Kelas), id: docSnap.id });
         });
-        if (snapshot.empty && !isDataCleared()) {
+        if (snapshot.empty && !hasDbInitializedRef.current && !isDataCleared() && !isCloudDataClearedRef.current) {
           const batch = writeBatch(db);
           INITIAL_CLASSES.forEach(c => batch.set(doc(db, 'classes', c.id), cleanForFirestore(c)));
           batch.commit().catch(e => console.warn('Auto seed classes:', e));
@@ -872,7 +893,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         snapshot.forEach(docSnap => {
           list.push({ ...(docSnap.data() as Kelompok), id: docSnap.id });
         });
-        if (snapshot.empty && !isDataCleared()) {
+        if (snapshot.empty && !hasDbInitializedRef.current && !isDataCleared() && !isCloudDataClearedRef.current) {
           const batch = writeBatch(db);
           INITIAL_GROUPS.forEach(g => batch.set(doc(db, 'groups', g.id), cleanForFirestore(g)));
           batch.commit().catch(e => console.warn('Auto seed groups:', e));
@@ -893,7 +914,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         snapshot.forEach(docSnap => {
           list.push({ ...(docSnap.data() as SesiTahfidz), id: docSnap.id });
         });
-        if (snapshot.empty && !isDataCleared()) {
+        if (snapshot.empty && !hasDbInitializedRef.current && !isDataCleared() && !isCloudDataClearedRef.current) {
           const batch = writeBatch(db);
           INITIAL_SESSIONS.forEach(s => batch.set(doc(db, 'sessions', s.id), cleanForFirestore(s)));
           batch.commit().catch(e => console.warn('Auto seed sessions:', e));
@@ -914,7 +935,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
         snapshot.forEach(docSnap => {
           list.push({ ...(docSnap.data() as TargetHafalan), id: docSnap.id });
         });
-        if (snapshot.empty && !isDataCleared()) {
+        if (snapshot.empty && !hasDbInitializedRef.current && !isDataCleared() && !isCloudDataClearedRef.current) {
           const batch = writeBatch(db);
           INITIAL_TARGETS.forEach(t => batch.set(doc(db, 'targets', t.id), cleanForFirestore(t)));
           batch.commit().catch(e => console.warn('Auto seed targets:', e));
@@ -1023,6 +1044,35 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
           }
           setUserAccounts(list);
+
+          // Real-time synchronization of active user's session if their role/profile changed on another device
+          setCurrentUser(prevUser => {
+            if (!prevUser) return null;
+            const updatedProfile = list.find(
+              u => u.id === prevUser.id || (prevUser.email && u.email?.toLowerCase() === prevUser.email.toLowerCase())
+            );
+            if (!updatedProfile) return prevUser;
+            if (
+              updatedProfile.role !== prevUser.role ||
+              updatedProfile.name !== prevUser.name ||
+              updatedProfile.phone !== prevUser.phone ||
+              updatedProfile.avatar !== prevUser.avatar ||
+              JSON.stringify(updatedProfile.studentIds || []) !== JSON.stringify(prevUser.studentIds || [])
+            ) {
+              return {
+                ...prevUser,
+                name: updatedProfile.name,
+                role: updatedProfile.role,
+                phone: updatedProfile.phone,
+                avatar: updatedProfile.avatar,
+                studentId: updatedProfile.studentId,
+                studentName: updatedProfile.studentName,
+                studentIds: updatedProfile.studentIds,
+                studentNames: updatedProfile.studentNames
+              };
+            }
+            return prevUser;
+          });
         }
       },
       error => {
@@ -1166,6 +1216,7 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
 
     return () => {
+      unsubSystemConfig();
       unsubSantri();
       unsubAttendance();
       unsubTasmi();
@@ -3314,52 +3365,49 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       // 1. Classes
       const batchClasses = writeBatch(db);
-      const classesToSync = classes.length > 0 ? classes : INITIAL_CLASSES;
+      const classesToSync = classes.length > 0 ? classes : (isDataCleared() ? [] : INITIAL_CLASSES);
       classesToSync.forEach(c => batchClasses.set(doc(db, 'classes', c.id), cleanForFirestore(c)));
       await batchClasses.commit();
       counts.classes = classesToSync.length;
 
       // 2. Groups
       const batchGroups = writeBatch(db);
-      const groupsToSync = groups.length > 0 ? groups : INITIAL_GROUPS;
+      const groupsToSync = groups.length > 0 ? groups : (isDataCleared() ? [] : INITIAL_GROUPS);
       groupsToSync.forEach(g => batchGroups.set(doc(db, 'groups', g.id), cleanForFirestore(g)));
       await batchGroups.commit();
       counts.groups = groupsToSync.length;
 
       // 3. Targets
       const batchTargets = writeBatch(db);
-      const targetsToSync = targets.length > 0 ? targets : INITIAL_TARGETS;
+      const targetsToSync = targets.length > 0 ? targets : (isDataCleared() ? [] : INITIAL_TARGETS);
       targetsToSync.forEach(t => batchTargets.set(doc(db, 'targets', t.id), cleanForFirestore(t)));
       await batchTargets.commit();
       counts.targets = targetsToSync.length;
 
       // 4. Sessions
       const batchSessions = writeBatch(db);
-      const sessionsToSync = sessions.length > 0 ? sessions : INITIAL_SESSIONS;
+      const sessionsToSync = sessions.length > 0 ? sessions : (isDataCleared() ? [] : INITIAL_SESSIONS);
       sessionsToSync.forEach(s => batchSessions.set(doc(db, 'sessions', s.id), cleanForFirestore(s)));
       await batchSessions.commit();
       counts.sessions = sessionsToSync.length;
 
       // 5. Santri
       const batchSantri = writeBatch(db);
-      const santriToSync = santriList.length > 0 ? santriList : INITIAL_SANTRI;
+      const santriToSync = santriList.length > 0 ? santriList : (isDataCleared() ? [] : INITIAL_SANTRI);
       santriToSync.forEach(s => batchSantri.set(doc(db, 'santri', s.id), cleanForFirestore(s)));
       await batchSantri.commit();
       counts.santri = santriToSync.length;
 
       // 6. Tasmi
       const batchTasmi = writeBatch(db);
-      const tasmiToSync = tasmiList.filter(t => !deletedTasmiIds.includes(t.id));
+      const tasmiToSync = tasmiList;
       tasmiToSync.forEach(t => batchTasmi.set(doc(db, 'tasmi', t.id), cleanForFirestore(t)));
-      deletedTasmiIds.forEach(delId => {
-        batchTasmi.delete(doc(db, 'tasmi', delId));
-      });
       await batchTasmi.commit();
       counts.tasmi = tasmiToSync.length;
 
       // 7. Attendance
       const batchAtt = writeBatch(db);
-      const attToSync = attendanceHistory.length > 0 ? attendanceHistory : INITIAL_ATTENDANCE;
+      const attToSync = attendanceHistory.length > 0 ? attendanceHistory : (isDataCleared() ? [] : INITIAL_ATTENDANCE);
       attToSync.forEach(a => batchAtt.set(doc(db, 'attendance', a.id), cleanForFirestore(a)));
       await batchAtt.commit();
       counts.attendance = attToSync.length;
@@ -3392,7 +3440,8 @@ export const TahfidzProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       // 10. Update system config
       await setDoc(doc(db, 'system', 'config'), {
-        dataCleared: false,
+        initialized: true,
+        dataCleared: isDataCleared(),
         lastFullSyncAt: new Date().toISOString()
       });
 
